@@ -1,8 +1,9 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
+    id("org.jetbrains.kotlin.multiplatform")
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0" // Agregar el plugin de Compose
 }
 
 kotlin {
@@ -33,6 +34,15 @@ kotlin {
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.json)
                 implementation(libs.ktor.client.serialization)
+                implementation(libs.androidx.activity.ktx)
+                implementation(libs.androidx.material)
+                implementation(libs.androidx.ui)
+                implementation(libs.androidx.ui.tooling.preview)
+                implementation(libs.activity.compose)
+                implementation(libs.androidx.runtime.android)
+                implementation(libs.androidx.runtime)
+                implementation(libs.androidx.compose.runtime)
+                implementation(libs.kotlin.logging)
             }
         }
         val androidMain by getting {
@@ -40,11 +50,6 @@ kotlin {
                 implementation(libs.ktor.client.android)
             }
         }
-//        val iosMain by getting {
-//            dependencies {
-//                implementation(libs.ktor.client.ios)
-//            }
-//        }
         val commonTest by getting {
             dependencies {
                 implementation(libs.kotlin.test)
@@ -64,10 +69,13 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
+
 dependencies {
     implementation(files("src/libs/spotify-app-remote-release-0.8.0.aar"))
     implementation(files("src/libs/spotify-auth-release-2.1.0.aar"))
     implementation(libs.ktor.client.cio)
     implementation(libs.gson)
+    implementation(libs.androidx.media3.common.ktx)
+
 }
 

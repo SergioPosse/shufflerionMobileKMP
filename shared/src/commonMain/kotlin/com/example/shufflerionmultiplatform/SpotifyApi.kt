@@ -17,8 +17,33 @@ class SpotifyApi(private val httpClient: HttpClient) {
 
     private var accessToken: String? = null
 
+
     fun setAccessToken(token: String) {
+        println("set access token: $token")
         accessToken = token
+    }
+
+    suspend fun saveSessionData(emailHost: String, emailGuest: String, token: String, sessionId: String) {
+        try {
+            val response = httpClient.post("https://mybackend.com/api/saveSession") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """{
+                        "emailHost": "$emailHost",
+                        "emailGuest": "$emailGuest",
+                        "token": "$token",
+                        "sessionId": "$sessionId"
+                    }"""
+                )
+            }
+            if (response.status == HttpStatusCode.OK) {
+                println("Sesión guardada correctamente.")
+            } else {
+                println("Error al guardar la sesión: ${response.status}")
+            }
+        } catch (e: Exception) {
+            println("Excepción al guardar la sesión: ${e.message}")
+        }
     }
 
     suspend fun getDeviceId(): String? {
@@ -30,7 +55,11 @@ class SpotifyApi(private val httpClient: HttpClient) {
 
         return if (response.status == HttpStatusCode.OK) {
             val jsonResponse = Json.parseToJsonElement(response.bodyAsText())
+            println("device jsonresponse: $jsonResponse")
+
             val devices = jsonResponse.jsonObject["devices"]?.jsonArray
+            println("device devices: $devices")
+
             devices?.firstOrNull()?.jsonObject?.get("id")?.jsonPrimitive?.content
         } else {
             null

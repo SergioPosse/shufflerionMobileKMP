@@ -11,6 +11,17 @@ ktorClientSerialization = "3.0.3"
 ktorClientIos = "3.0.3"
 ktorClientCio = "3.0.3"
 gson = "2.11.0"
+activityKtx = "1.10.0"
+material = "1.7.7"
+ui = "1.7.7"
+uiToolingPreview = "1.7.7"
+activityCompose = "1.10.0"
+runtimeAndroid = "1.7.7"
+runtime = "1.7.7"
+composeRuntime = "0.1.0-dev14"
+composeRuntimeVersion = "1.7.3"
+media3CommonKtx = "1.5.1"
+kotlinLogging = "4.0.0-beta-2"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -27,6 +38,17 @@ ktor-client-serialization = { group = "io.ktor", name = "ktor-client-serializati
 ktor-client-ios = { group = "io.ktor", name = "ktor-client-ios", version.ref = "ktorClientIos" }
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktorClientCio" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityKtx" }
+androidx-material = { group = "androidx.compose.material", name = "material", version.ref = "material" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "uiToolingPreview" }
+activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-runtime-android = { group = "androidx.compose.runtime", name = "runtime-android", version.ref = "runtimeAndroid" }
+androidx-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
+androidx-compose-runtime = { group = "androidx.compose", name = "compose-runtime", version.ref = "composeRuntime" }
+compose-runtime = { group = "org.jetbrains.compose", name = "compose-runtime", version.ref = "composeRuntimeVersion" }
+androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtx" }
+kotlin-logging = { group = "io.github.microutils", name = "kotlin-logging", version.ref = "kotlinLogging" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
