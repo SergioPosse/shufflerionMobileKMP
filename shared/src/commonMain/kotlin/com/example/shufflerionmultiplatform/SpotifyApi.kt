@@ -23,21 +23,29 @@ class SpotifyApi(private val httpClient: HttpClient) {
         accessToken = token
     }
 
-    suspend fun saveSessionData(emailHost: String, emailGuest: String, token: String, sessionId: String) {
+    suspend fun saveSession(sessionId: String, hostEmail: String, accessToken: String, refreshToken: String) {
         try {
-            val response = httpClient.post("https://mybackend.com/api/saveSession") {
+            val domain = "http://localhost:8080"
+            val createSessionUrl = "/session/create"
+            println("domain: $domain")
+            println("URL: $createSessionUrl")
+            val response = httpClient.post("$domain$createSessionUrl") {
                 contentType(ContentType.Application.Json)
                 setBody(
                     """{
-                        "emailHost": "$emailHost",
-                        "emailGuest": "$emailGuest",
-                        "token": "$token",
-                        "sessionId": "$sessionId"
-                    }"""
+                    "id": "$sessionId",
+                    "host": {
+                        "email": "$hostEmail",
+                        "tokens": {
+                            "accessToken": "$accessToken",
+                            "refreshToken": "$refreshToken"
+                        }
+                    }
+                }"""
                 )
             }
             if (response.status == HttpStatusCode.OK) {
-                println("Sesión guardada correctamente.")
+                println("Sesión guardada correctamente en el backend.")
             } else {
                 println("Error al guardar la sesión: ${response.status}")
             }

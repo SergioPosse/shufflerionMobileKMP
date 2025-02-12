@@ -22,6 +22,7 @@ composeRuntime = "0.1.0-dev14"
 composeRuntimeVersion = "1.7.3"
 media3CommonKtx = "1.5.1"
 kotlinLogging = "4.0.0-beta-2"
+aapt2 = "8.10.0-alpha04-12782657"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -49,6 +50,7 @@ androidx-compose-runtime = { group = "androidx.compose", name = "compose-runtime
 compose-runtime = { group = "org.jetbrains.compose", name = "compose-runtime", version.ref = "composeRuntimeVersion" }
 androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtx" }
 kotlin-logging = { group = "io.github.microutils", name = "kotlin-logging", version.ref = "kotlinLogging" }
+aapt2 = { group = "com.android.tools.build", name = "aapt2", version.ref = "aapt2" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

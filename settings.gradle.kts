@@ -20,3 +20,5 @@ dependencyResolutionManagement {
 rootProject.name = "shufflerionMultiplatform"
 include(":shufflerionAndroid")
 include(":shared")
+include(":spotify-app-remote")
+include(":spotify-auth")
