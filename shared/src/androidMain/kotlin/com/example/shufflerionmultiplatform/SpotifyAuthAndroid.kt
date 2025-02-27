@@ -7,6 +7,7 @@ import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
 
+
 class SpotifyAuthAndroid(private val activity: Activity) : SpotifyAuth {
 
     private val clientId = "335ea7b32dd24009bd0529ba85f0f8cc"
@@ -19,7 +20,18 @@ class SpotifyAuthAndroid(private val activity: Activity) : SpotifyAuth {
     override fun requestAccessToken(onTokenReceived: (String) -> Unit) {
         this.onTokenReceived = onTokenReceived
         val authBuilder = AuthorizationRequest.Builder(clientId, AuthorizationResponse.Type.TOKEN, redirectUri)
-        authBuilder.setScopes(arrayOf("streaming", "user-modify-playback-state", "user-read-playback-state"))
+        authBuilder.setScopes(
+            arrayOf(
+                "user-library-read",
+                "streaming",
+                "user-read-playback-state",
+                "user-modify-playback-state",
+                "user-read-currently-playing",
+                "user-read-private",
+                "user-read-playback-position",
+                "user-read-email"
+            )
+        )
         val request = authBuilder.build()
         println("Lanzando actividad de autorización: $onTokenReceived")
         val loginIntent = AuthorizationClient.createLoginActivityIntent(activity, request)

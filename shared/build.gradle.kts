@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
     id("org.jetbrains.kotlin.multiplatform")
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
+    kotlin("plugin.serialization") version "2.1.0"
 }
 
 kotlin {
@@ -43,6 +44,9 @@ kotlin {
                 implementation(libs.androidx.runtime)
                 implementation(libs.androidx.compose.runtime)
                 implementation(libs.kotlin.logging)
+                implementation(libs.navigation.compose)
+                implementation(libs.ktor.client.websockets)
+                implementation(libs.kotlinx.serialization.json)
             }
         }
         val androidMain by getting {
@@ -78,4 +82,6 @@ dependencies {
     implementation(libs.ktor.client.cio)
     implementation(libs.gson)
     implementation(libs.androidx.media3.common.ktx)
+    implementation(libs.precompose)
+    implementation(libs.image.loader)
 }

@@ -23,6 +23,13 @@ composeRuntimeVersion = "1.7.3"
 media3CommonKtx = "1.5.1"
 kotlinLogging = "4.0.0-beta-2"
 aapt2 = "8.10.0-alpha04-12782657"
+precompose = "1.7.0-alpha03"
+navigationCompose = "2.8.0-alpha13"
+coilCompose = "2.7.0"
+landscapistCoil = "2.4.7"
+imageLoader = "1.10.0"
+ktorClientWebsockets = "3.1.1"
+kotlinxSerializationJson = "1.8.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -51,6 +58,13 @@ compose-runtime = { group = "org.jetbrains.compose", name = "compose-runtime", v
 androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtx" }
 kotlin-logging = { group = "io.github.microutils", name = "kotlin-logging", version.ref = "kotlinLogging" }
 aapt2 = { group = "com.android.tools.build", name = "aapt2", version.ref = "aapt2" }
+precompose = { group = "moe.tlaster", name = "precompose", version.ref = "precompose" }
+navigation-compose = { group = "org.jetbrains.androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coilCompose" }
+landscapist-coil = { group = "com.github.skydoves", name = "landscapist-coil", version.ref = "landscapistCoil" }
+image-loader = { group = "io.github.qdsfdhvh", name = "image-loader", version.ref = "imageLoader" }
+ktor-client-websockets = { group = "io.ktor", name = "ktor-client-websockets", version.ref = "ktorClientWebsockets" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
