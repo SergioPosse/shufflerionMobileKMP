@@ -30,6 +30,8 @@ landscapistCoil = "2.4.7"
 imageLoader = "1.10.0"
 ktorClientWebsockets = "3.1.1"
 kotlinxSerializationJson = "1.8.0"
+ktorClientContentNegotiation = "3.1.1"
+ktorSerializationKotlinxJson = "3.1.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -65,6 +67,8 @@ landscapist-coil = { group = "com.github.skydoves", name = "landscapist-coil", v
 image-loader = { group = "io.github.qdsfdhvh", name = "image-loader", version.ref = "imageLoader" }
 ktor-client-websockets = { group = "io.ktor", name = "ktor-client-websockets", version.ref = "ktorClientWebsockets" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktorClientContentNegotiation" }
+ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

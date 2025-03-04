@@ -19,7 +19,8 @@ class SpotifyAuthAndroid(private val activity: Activity) : SpotifyAuth {
 
     override fun requestAccessToken(onTokenReceived: (String) -> Unit) {
         this.onTokenReceived = onTokenReceived
-        val authBuilder = AuthorizationRequest.Builder(clientId, AuthorizationResponse.Type.TOKEN, redirectUri)
+        val authBuilder =
+            AuthorizationRequest.Builder(clientId, AuthorizationResponse.Type.TOKEN, redirectUri)
         authBuilder.setScopes(
             arrayOf(
                 "user-library-read",
@@ -48,20 +49,24 @@ class SpotifyAuthAndroid(private val activity: Activity) : SpotifyAuth {
             }
             val response = AuthorizationClient.getResponse(resultCode, intent)
             println("response auth client: $response")
+            println("refreshToken: ${response}")
             when (response.type) {
                 AuthorizationResponse.Type.TOKEN -> {
                     println("Token recibido: ${response.accessToken}")
                     onTokenReceived?.invoke(response.accessToken)
                 }
+
                 AuthorizationResponse.Type.ERROR -> {
                     println("Error: ${response.error}")
                 }
+
                 else -> {
                     println("Respuesta no manejada: ${response.type}")
                 }
             }
         }
     }
+
     fun registerLauncher(launcher: ActivityResultLauncher<Intent>) {
         this.launcher = launcher
         println("launcher configurado: $launcher")

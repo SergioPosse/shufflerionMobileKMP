@@ -1,6 +1,5 @@
 package com.example.shufflerionmultiplatform
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.*
@@ -18,25 +17,30 @@ import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
-import moe.tlaster.precompose.navigation.Navigator
 import org.json.JSONObject
 
 @Composable
 fun WebSocketScreen(sessionId: String, spotifyApi: SpotifyApi, onContinue: () -> Unit) {
     var isButtonEnabled by remember { mutableStateOf(false) }
-    val webSocketManager = remember { WebSocketManager(sessionId,spotifyApi, onMessageReceived = { message ->
-        println("message socket: $message")
-        val accessToken = extractAccessToken(message)
-        if (!accessToken.isNullOrEmpty()) {
-            println("token2: $accessToken")
-            spotifyApi.setAccessToken2(accessToken)
-            isButtonEnabled = true
-        }
-    }) }
+    val webSocketManager = remember {
+        WebSocketManager(sessionId, spotifyApi, onMessageReceived = { message ->
+            println("message socket: $message")
+            val accessToken = extractAccessToken(message)
+            val refreshToken = extractRefreshToken(message)
+            if (!accessToken.isNullOrEmpty()) {
+                println("token2: $accessToken")
+                spotifyApi.setAccessToken2(accessToken)
+                if (refreshToken != null) {
+                    spotifyApi.setRefreshToken2(refreshToken)
+                }
+                isButtonEnabled = true
+            }
+        })
+    }
 
     LaunchedEffect(sessionId) {
         webSocketManager.connect()
@@ -50,9 +54,15 @@ fun WebSocketScreen(sessionId: String, spotifyApi: SpotifyApi, onContinue: () ->
     }
 }
 
+
 @Composable
-fun MainContent(spotifyAuth: SpotifyAuth, spotifyApi: SpotifyApi, goToPlayer: () -> Unit,     clipboardManager: ClipboardManager
-, spotifyAppRemote: SpotifyAppRemoteInterface) {
+fun MainContent(
+    spotifyAuth: SpotifyAuth,
+    spotifyApi: SpotifyApi,
+    goToPlayer: () -> Unit,
+    clipboardManager: ClipboardManager,
+    spotifyAppRemote: SpotifyAppRemoteInterface
+) {
 
     var hostEmail by remember { mutableStateOf("") }
     var guestEmail by remember { mutableStateOf("") }
@@ -60,9 +70,29 @@ fun MainContent(spotifyAuth: SpotifyAuth, spotifyApi: SpotifyApi, goToPlayer: ()
     var sessionId by remember { mutableStateOf("") }
     var deviceId by remember { mutableStateOf<String?>(null) }
     var isButtonEnabled by remember { mutableStateOf(true) }
-    var canContinue by remember { mutableStateOf(false)}
+    var canContinue by remember { mutableStateOf(false) }
     val canShareLink by remember { derivedStateOf { sessionId.isNotEmpty() && guestEmail.isNotEmpty() } }
-    var isWebSocketActive by remember { mutableStateOf(false) }
+    var isWebSocketActive by remember {
+        mutableStateOf(false)
+    }
+    val refreshInterval = 2500 * 1000L
+    fun refreshAccessToken() {
+        spotifyAuth.requestAccessToken { receivedToken ->
+            println("Token refresh recibido: $receivedToken")
+            spotifyApi.setAccessToken(receivedToken)
+            token = receivedToken
+        }
+    }
+
+    fun startTokenRefreshLoop() {
+        println("refreshacces token loop started")
+        CoroutineScope(Dispatchers.IO).launch {
+            while (true) {
+                delay(refreshInterval)
+                refreshAccessToken()
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -80,16 +110,18 @@ fun MainContent(spotifyAuth: SpotifyAuth, spotifyApi: SpotifyApi, goToPlayer: ()
             enabled = isButtonEnabled
         )
 
-        Button(onClick = {
-            println("Botón clickeado")
-            spotifyAuth.requestAccessToken { receivedToken ->
-                println("Token recibido: $receivedToken")
-                sessionId = generateSessionId()
-                spotifyApi.setAccessToken(receivedToken)
-                token = receivedToken
-            }
-        }, enabled = isButtonEnabled
-            ) {
+        Button(
+            onClick = {
+                println("Botón clickeado")
+                spotifyAuth.requestAccessToken { receivedToken ->
+                    println("Token recibido: $receivedToken")
+                    sessionId = generateSessionId()
+                    spotifyApi.setAccessToken(receivedToken)
+                    token = receivedToken
+                    startTokenRefreshLoop()
+                }
+            }, enabled = isButtonEnabled
+        ) {
             Text("Get Spotify permission")
         }
 
@@ -103,7 +135,8 @@ fun MainContent(spotifyAuth: SpotifyAuth, spotifyApi: SpotifyApi, goToPlayer: ()
 
         Button(
             onClick = {
-                val link = "localhost:3000?guestEmail=$guestEmail&sessionId=$sessionId"
+                val link =
+                    "https://shufflerionauth.onrender.com?guestEmail=$guestEmail&sessionId=$sessionId"
                 clipboardManager.copyToClipboard(link)
                 println("Enlace copiado al portapapeles: $link")
                 isWebSocketActive = true // Activa WebSocket al compartir enlace
@@ -215,4 +248,12 @@ fun extractAccessToken(message: String): String? {
     val guestObject = dataObject?.optJSONObject("Guest")
     val tokensObject = guestObject?.optJSONObject("Tokens")
     return tokensObject?.optString("AccessToken")
+}
+
+fun extractRefreshToken(message: String): String? {
+    val jsonObject = JSONObject(message)
+    val dataObject = jsonObject.optJSONObject("data")
+    val guestObject = dataObject?.optJSONObject("Guest")
+    val tokensObject = guestObject?.optJSONObject("Tokens")
+    return tokensObject?.optString("RefreshToken")
 }

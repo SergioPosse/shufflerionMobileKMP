@@ -41,11 +41,9 @@ class SpotifyAppRemoteAndroid(private val context: Context) : SpotifyAppRemoteIn
     }
 
     override fun subscribeToPlayerState(onStateChanged: (playerState: PlayerState) -> Unit) {
-        spotifyAppRemote?.playerApi?.subscribeToPlayerState()?.setEventCallback { playerState: PlayerState ->
-            println("player api: $playerState")
-            val trackName = playerState.track?.name ?: "Desconocido"
-//            Log.d("SpotifyRemote", "Canción actual: $trackName")
-            onStateChanged(playerState)
-        }
+        spotifyAppRemote?.playerApi?.subscribeToPlayerState()
+            ?.setEventCallback { playerState: PlayerState ->
+                onStateChanged(playerState)
+            }
     }
 }
