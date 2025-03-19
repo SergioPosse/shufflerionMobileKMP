@@ -23,7 +23,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 @Composable
-fun PlayerScreen(spotifyApi: SpotifyApi, spotifyAppRemote: SpotifyAppRemoteInterface) {
+fun PlayerScreen(spotifyApi: SpotifyApi, spotifyAppRemote: SpotifyAppRemoteInterface, logger: Logger) {
     var deviceId by remember { mutableStateOf<String?>(null) }
     var songs by remember { mutableStateOf<List<Song>>(emptyList()) }
     var currentSongIndex by remember { mutableIntStateOf(0) }
@@ -86,7 +86,7 @@ fun PlayerScreen(spotifyApi: SpotifyApi, spotifyAppRemote: SpotifyAppRemoteInter
     }
 
 
-    suspend fun playOnlyOneSong(direction: String?, index: Int?) {
+    suspend fun playOnlyOneSong(direction: String?, index: Int?, attempts: Int = 0) {
         if (direction == "PREV") {
             currentSongIndex--
         }
@@ -98,54 +98,28 @@ fun PlayerScreen(spotifyApi: SpotifyApi, spotifyAppRemote: SpotifyAppRemoteInter
         }
         songs[currentSongIndex].visible = true
         isPlaying = true
-        if (currentSongIndex == 2) {
-            val response =
-                deviceId?.let {
-                    spotifyApi.playSong(
-                        it,
-                        "spotify:track:243CX6U8LofX7SJbBewWRN"
-                    )
-                }
-            println("current songindex: $currentSongIndex")
-            println("response playsong: $response")
-            if (response == false) {
-                markAsFailAndContinue(currentSongIndex, direction)
-                playOnlyOneSong(null, currentSongIndex)
-            }
-            else {
-                delay(5000)
-                val responsePlayerState = spotifyApi.getPlayerState()
-                println("check response: $responsePlayerState")
 
-                // Verificar si la canción está en reproducción, si no, continuar con la siguiente canción
-                val jsonElement = responsePlayerState?.let { Json.parseToJsonElement(it) }
-                val isPlayingPlayer = jsonElement?.jsonObject?.get("is_playing")?.jsonPrimitive?.booleanOrNull ?: false
-
-                if (!isPlayingPlayer && !isPausedByUser && isPlaying) {
-                    println("No hay reproducción activa. Reproduciendo la siguiente canción...")
-                    markAsFailAndContinue(currentSongIndex, direction)
-                    playOnlyOneSong(null, currentSongIndex)
-                }
-            }
+        val response = deviceId?.let { spotifyApi.playSong(it, songs[currentSongIndex].url) }
+        logger.log("current songindex: $currentSongIndex")
+        logger.log("response playsong: $response")
+        if (response == false) {
+            markAsFailAndContinue(currentSongIndex, direction)
+            playOnlyOneSong(null, currentSongIndex)
         } else {
-            val response = deviceId?.let { spotifyApi.playSong(it, songs[currentSongIndex].url) }
-            println("current songindex: $currentSongIndex")
-            println("response playsong: $response")
-            if (response == false) {
-                markAsFailAndContinue(currentSongIndex, direction)
-                playOnlyOneSong(null, currentSongIndex)
-            }
-            else {
-                delay(5000)
-                val responsePlayerState = spotifyApi.getPlayerState()
-                println("check response: $responsePlayerState")
+            delay(3000)
+            val responsePlayerState = spotifyApi.getPlayerState()
 
-                // Verificar si la canción está en reproducción, si no, continuar con la siguiente canción
-                val jsonElement = responsePlayerState?.let { Json.parseToJsonElement(it) }
-                val isPlayingPlayer = jsonElement?.jsonObject?.get("is_playing")?.jsonPrimitive?.booleanOrNull ?: false
+            val jsonElement = responsePlayerState?.let { Json.parseToJsonElement(it) }
+            val isPlayingPlayer =
+                jsonElement?.jsonObject?.get("is_playing")?.jsonPrimitive?.booleanOrNull ?: false
+            logger.log("check response: $isPlayingPlayer")
 
-                if (!isPlayingPlayer && !isPausedByUser && isPlaying) {
-                    println("No hay reproducción activa. Reproduciendo la siguiente canción...")
+            if (!isPlayingPlayer && !isPausedByUser && isPlaying) {
+                if (attempts < 2) {
+                    logger.log("No hay reproducción activa. Reintentando...")
+                    playOnlyOneSong(null, currentSongIndex, attempts + 1)
+                } else {
+                    logger.log("No hay reproducción activa después de 3 intentos. Marcando como fallo...")
                     markAsFailAndContinue(currentSongIndex, direction)
                     playOnlyOneSong(null, currentSongIndex)
                 }
@@ -159,14 +133,15 @@ fun PlayerScreen(spotifyApi: SpotifyApi, spotifyAppRemote: SpotifyAppRemoteInter
             val paused = playerState.isPaused
             val playbackPosition = playerState.playbackPosition
             val track = playerState.track.name
-            println("paused: $paused")
+            logger.log("paused: $paused")
             if (
                 playbackPosition <= 0 &&
                 isPlaying &&
                 paused &&
-                track != null
+                track != null &&
+                !isPausedByUser
             ) {
-                println("Finalizado!!!!!")
+                logger.log("Finalizado!!!!! $songs[currentSongIndex]")
                 coroutineScope.launch {
                     if (currentSongIndex < songs.size - 1) {
                         playOnlyOneSong("NEXT", null)

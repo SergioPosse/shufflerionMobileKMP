@@ -32,6 +32,7 @@ ktorClientWebsockets = "3.1.1"
 kotlinxSerializationJson = "1.8.0"
 ktorClientContentNegotiation = "3.1.1"
 ktorSerializationKotlinxJson = "3.1.1"
+androidAgent = "7.6.4"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -69,6 +70,7 @@ ktor-client-websockets = { group = "io.ktor", name = "ktor-client-websockets", v
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktorClientContentNegotiation" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }
+android-agent = { group = "com.newrelic.agent.android", name = "android-agent", version.ref = "androidAgent" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -77,3 +79,5 @@ kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinCocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+newrelic = { id = "com.newrelic.agent.android", version.ref = "androidAgent" }
+

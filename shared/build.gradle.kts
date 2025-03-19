@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
     id("org.jetbrains.kotlin.multiplatform")
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
+    alias(libs.plugins.newrelic)
     kotlin("plugin.serialization") version "2.1.0"
 }
 
@@ -84,4 +85,5 @@ dependencies {
     implementation(libs.androidx.media3.common.ktx)
     implementation(libs.precompose)
     implementation(libs.image.loader)
+    implementation(libs.android.agent)
 }

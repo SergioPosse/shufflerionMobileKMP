@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.newrelic)
 }
 
 android {
@@ -18,6 +19,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     packaging {
         resources {
@@ -27,7 +29,13 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
+            buildConfigField("String", "ENVIRONMENT", "\"PROD\"")
         }
+        getByName("debug") {
+            isMinifyEnabled = false
+            buildConfigField("String", "ENVIRONMENT", "\"DEV\"")
+        }
+
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -51,5 +59,6 @@ dependencies {
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.android.agent)
     debugImplementation(libs.compose.ui.tooling)
 }

@@ -7,10 +7,8 @@ import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.encodeBase64
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -33,25 +31,26 @@ data class TrackResponse(
     val available_markets: List<String>
 )
 
-class SpotifyApi(private val httpClient: HttpClient) {
+class SpotifyApi(private val httpClient: HttpClient, loggerParam: Logger) {
 
     private var accessToken: String? = null
     private var accessToken2: String? = null
     private var refreshToken2: String? = null
+    private var logger: Logger = loggerParam
 
 
     fun setAccessToken(token: String) {
-        println("set access token: $token")
+        logger.log("set access token: $token")
         accessToken = token
     }
 
     fun setAccessToken2(token: String) {
-        println("set access token2: $token")
+        logger.log("set access token2: $token")
         accessToken2 = token
     }
 
     fun setRefreshToken2(refreshToken: String) {
-        println("set refreshtoken2: $refreshToken")
+        logger.log("set refreshtoken2: $refreshToken")
         refreshToken2 = refreshToken
     }
 
@@ -65,8 +64,8 @@ class SpotifyApi(private val httpClient: HttpClient) {
         return try {
             val domain = "https://shufflerionserver.onrender.com"
             val createSessionUrl = "/session/create"
-            println("domain: $domain")
-            println("URL: $createSessionUrl")
+            logger.log("domain: $domain")
+            logger.log("URL: $createSessionUrl")
 
             val response = httpClient.post("$domain$createSessionUrl") {
                 contentType(ContentType.Application.Json)
@@ -85,14 +84,14 @@ class SpotifyApi(private val httpClient: HttpClient) {
             }
             println("response $response")
             if (response.status == HttpStatusCode.Created) {
-                println("Sesión guardada correctamente en el backend.")
+                logger.log("Sesión guardada correctamente en el backend. $sessionId")
                 true
             } else {
-                println("Error al guardar la sesión: ${response.status}")
+                logger.logError("Error al guardar la sesión $sessionId: ${response.status}")
                 false
             }
         } catch (e: Exception) {
-            println("Excepción al guardar la sesión: ${e.message}")
+            logger.logError("Excepción al guardar la sesión $sessionId: ${e.message}")
             false
         }
     }
@@ -107,10 +106,10 @@ class SpotifyApi(private val httpClient: HttpClient) {
 
         return if (response.status == HttpStatusCode.OK) {
             val jsonResponse = Json.parseToJsonElement(response.bodyAsText())
-            println("device jsonresponse: $jsonResponse")
+            logger.log("device jsonresponse: $jsonResponse")
 
             val devices = jsonResponse.jsonObject["devices"]?.jsonArray
-            println("device devices: $devices")
+            logger.log("device devices: $devices")
 
             devices?.firstOrNull()?.jsonObject?.get("id")?.jsonPrimitive?.content
         } else {
@@ -126,14 +125,12 @@ class SpotifyApi(private val httpClient: HttpClient) {
             }
 
             if (response.status != HttpStatusCode.OK) {
-                println("Error al obtener la información del track: ${response.status}")
+                logger.logError("Error al obtener la información del track: ${response.status}")
                 return@withContext false
             }
 
             val trackInfo: TrackResponse = response.body()
-
-            println("track info: ${trackInfo.available_markets}")
-
+            logger.log("track info: ${trackInfo.available_markets}")
             return@withContext trackInfo.available_markets.contains("AR")
         }
     }
@@ -147,8 +144,7 @@ class SpotifyApi(private val httpClient: HttpClient) {
                     contentType(ContentType.Application.Json)
                     setBody("""{"uris":["$trackUri"]}""")
                 }
-
-                println("Intento ${attempts + 1} - Response Status: ${response.status}")
+                logger.log("Intento ${attempts + 1} - Response Status: ${response.status}")
 
                 if (response.status == HttpStatusCode.NoContent || response.status == HttpStatusCode.OK) {
                     return@withContext true
@@ -166,10 +162,9 @@ class SpotifyApi(private val httpClient: HttpClient) {
         return try {
             val domain = "https://shufflerionserver.onrender.com"
             val createSessionUrl = "/songs/random"
-            println("URL: $domain$createSessionUrl")
-
-            println("token1 before request: $accessToken")
-            println("token2 before request: $accessToken2")
+            logger.log("URL: $domain$createSessionUrl")
+            logger.log("token1 before request: $accessToken")
+            logger.log("token2 before request: $accessToken2")
             val responseText = httpClient.post("$domain$createSessionUrl") {
                 contentType(ContentType.Application.Json)
                 setBody(
@@ -192,11 +187,10 @@ class SpotifyApi(private val httpClient: HttpClient) {
 
                 songs.add(Song(title, artist, url, image, disabled = false, visible = false))
             }
-
-            println("Canciones recibidas: $songs")
+            logger.log("Canciones recibidas: $songs")
             songs
         } catch (e: Exception) {
-            println("Excepción al obtener canciones aleatorias: ${e.message}")
+            logger.logError("Excepción al obtener canciones aleatorias: ${e.message}")
             null
         }
     }
@@ -212,7 +206,7 @@ class SpotifyApi(private val httpClient: HttpClient) {
             return@withContext if (response.status == HttpStatusCode.OK) {
                 response.bodyAsText()
             } else {
-                println("Error al obtener el estado del player: ${response.status}")
+                logger.logError("Error al obtener el estado del player: ${response.status}")
                 null
             }
         }
@@ -239,15 +233,15 @@ class SpotifyApi(private val httpClient: HttpClient) {
 
                 if (newAccessToken != null) {
                     setAccessToken2(newAccessToken)
-                    println("Nuevo access token: $newAccessToken")
+                    logger.log("Nuevo access token: $newAccessToken")
                 }
                 return newAccessToken
             } else {
-                println("Error al refrescar el token: ${response.status}")
+                logger.logError("Error al refrescar el token: ${response.status}")
                 null
             }
         } catch (e: Exception) {
-            println("Excepción al refrescar el token: ${e.message}")
+            logger.logError("Excepción al refrescar el token: ${e.message}")
             null
         }
     }

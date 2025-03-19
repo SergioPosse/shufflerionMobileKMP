@@ -8,14 +8,14 @@ import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
 
 
-class SpotifyAuthAndroid(private val activity: Activity) : SpotifyAuth {
+class SpotifyAuthAndroid(private val activity: Activity, loggerParam: Logger) : SpotifyAuth {
 
     private val clientId = "335ea7b32dd24009bd0529ba85f0f8cc"
     private val redirectUri = "shufflerionApp://callback"
     val requestCode = 1337
     private var onTokenReceived: ((String) -> Unit)? = null
     private var launcher: ActivityResultLauncher<Intent>? = null
-
+    private var logger: Logger = loggerParam
 
     override fun requestAccessToken(onTokenReceived: (String) -> Unit) {
         this.onTokenReceived = onTokenReceived
@@ -34,34 +34,33 @@ class SpotifyAuthAndroid(private val activity: Activity) : SpotifyAuth {
             )
         )
         val request = authBuilder.build()
-        println("Lanzando actividad de autorización: $onTokenReceived")
+        logger.log("Lanzando actividad de autorización: $onTokenReceived")
         val loginIntent = AuthorizationClient.createLoginActivityIntent(activity, request)
-        launcher?.launch(loginIntent) ?: println("Launcher no configurado")
+        launcher?.launch(loginIntent) ?: logger.logError("Launcher no configurado")
     }
 
     override fun handleActivityResult(requestCode: Int, resultCode: Int, data: Any?) {
-        println("handleActivityResult llamado con requestCode: $requestCode, resultCode: $resultCode")
+        logger.log("handleActivityResult llamado con requestCode: $requestCode, resultCode: $resultCode")
         if (requestCode == this.requestCode) {
             val intent = data as? Intent
             if (intent == null) {
-                println("Data no es un Intent válido")
+                logger.log("Data no es un Intent válido")
                 return
             }
             val response = AuthorizationClient.getResponse(resultCode, intent)
-            println("response auth client: $response")
-            println("refreshToken: ${response}")
+            logger.log("response auth client: $response")
             when (response.type) {
                 AuthorizationResponse.Type.TOKEN -> {
-                    println("Token recibido: ${response.accessToken}")
+                    logger.log("Token recibido: ${response.accessToken}")
                     onTokenReceived?.invoke(response.accessToken)
                 }
 
                 AuthorizationResponse.Type.ERROR -> {
-                    println("Error: ${response.error}")
+                    logger.logError("Error: ${response.error}")
                 }
 
                 else -> {
-                    println("Respuesta no manejada: ${response.type}")
+                    logger.logError("Respuesta no manejada: ${response.type}")
                 }
             }
         }
@@ -69,7 +68,7 @@ class SpotifyAuthAndroid(private val activity: Activity) : SpotifyAuth {
 
     fun registerLauncher(launcher: ActivityResultLauncher<Intent>) {
         this.launcher = launcher
-        println("launcher configurado: $launcher")
+        logger.log("launcher configurado: $launcher")
     }
 }
 

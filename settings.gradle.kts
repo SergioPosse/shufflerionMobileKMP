@@ -5,7 +5,7 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
         maven { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
-
+        maven { url = uri("https://plugins.gradle.org/m2/") } // New Relic
     }
 }
 
