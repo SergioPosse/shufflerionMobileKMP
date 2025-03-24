@@ -67,7 +67,7 @@ android {
     namespace = "com.example.shufflerionmultiplatform"
     compileSdk = 35
     defaultConfig {
-        minSdk = 25
+        minSdk = 26
         manifestPlaceholders["redirectHostName"] = "shufflerionApp"
         manifestPlaceholders["redirectSchemeName"] = "callback"
     }
@@ -86,4 +86,7 @@ dependencies {
     implementation(libs.precompose)
     implementation(libs.image.loader)
     implementation(libs.android.agent)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.ktor.client.json)
+    implementation(libs.ktor.serialization.kotlinx.json)
 }

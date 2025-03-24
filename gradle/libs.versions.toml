@@ -33,6 +33,8 @@ kotlinxSerializationJson = "1.8.0"
 ktorClientContentNegotiation = "3.1.1"
 ktorSerializationKotlinxJson = "3.1.1"
 androidAgent = "7.6.4"
+coreKtx = "1.16.0-beta01"
+ktorClientJsonVersion = "3.1.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -71,6 +73,8 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktorClientContentNegotiation" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }
 android-agent = { group = "com.newrelic.agent.android", name = "android-agent", version.ref = "androidAgent" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+ktor-ktor-client-json = { group = "io.ktor", name = "ktor-client-json", version.ref = "ktorClientJsonVersion" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

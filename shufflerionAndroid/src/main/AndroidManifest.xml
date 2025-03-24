@@ -1,20 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
     <application
+        tools:remove="android:appComponentFactory"
         android:allowBackup="false"
         android:supportsRtl="true"
         android:requestLegacyExternalStorage="true"
         android:theme="@style/AppTheme">
-
+        <service android:name="com.example.shufflerionmultiplatform.PlayerServiceAndroid" android:permission="android.permission.BIND_JOB_SERVICE" android:enabled ="true" android:exported="false"
+            tools:ignore="Instantiatable" />
+        <service android:name="com.example.shufflerionmultiplatform.SpotifyAppRemoteAndroid"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            tools:ignore="Instantiatable" />
+        <service android:name="com.example.shufflerionmultiplatform.SpotifyAuthAndroid"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            tools:ignore="Instantiatable" />
     <meta-data
             android:name="com.newrelic.application_token"
             android:value="AA47eb0821059576bbdbaf433a087389974bce058d-NRMA" />
         <activity
             android:name=".MainActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:launchMode="singleTop"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

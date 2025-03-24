@@ -10,7 +10,7 @@ android {
     compileSdk = 35
     defaultConfig {
         applicationId = "com.example.shufflerionmultiplatform.android"
-        minSdk = 25
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -60,5 +60,6 @@ dependencies {
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.android.agent)
+    implementation(libs.androidx.core.ktx)
     debugImplementation(libs.compose.ui.tooling)
 }

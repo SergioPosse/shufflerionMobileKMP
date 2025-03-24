@@ -4,14 +4,14 @@ import com.newrelic.agent.android.NewRelic
 
 class AndroidLogger : Logger {
     override fun log(message: String) {
-        NewRelic.logInfo(message)
+        NewRelic.logInfo("shufflerionApp: $message")
     }
 
     override fun logError(error: String) {
-        NewRelic.logError(error)
+        NewRelic.logError("shufflerionApp: $error")
     }
 
     override fun logWarning(warning: String) {
-        NewRelic.logWarning(warning)
+        NewRelic.logWarning("shufflerionApp: $warning")
     }
 }
