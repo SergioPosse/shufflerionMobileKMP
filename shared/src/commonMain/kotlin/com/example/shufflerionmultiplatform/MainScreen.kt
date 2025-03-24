@@ -1,8 +1,6 @@
 package com.example.shufflerionmultiplatform
 
 import android.app.Activity
-import android.content.Context
-import android.os.PowerManager
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.*
@@ -41,7 +39,6 @@ fun WebSocketScreen(
             val accessToken = extractAccessToken(message)
             val refreshToken = extractRefreshToken(message)
             if (!accessToken.isNullOrEmpty()) {
-                logger.log("token2: $accessToken")
                 spotifyApi.setAccessToken2(accessToken)
                 if (refreshToken != null) {
                     spotifyApi.setRefreshToken2(refreshToken)
@@ -89,12 +86,9 @@ fun MainContent(
 
     val context = LocalContext.current
     val activity = context as? Activity
-    logger.log("main content cargado")
 
     fun refreshAccessToken() {
-        logger.log("Lanzando refresh token ....")
         CoroutineScope(Dispatchers.IO).launch {
-            logger.log("Actualizando token con refresh token desde Spotify API")
             val newAccessToken = spotifyApi.refreshAccessToken()
             if (newAccessToken != null) {
                 token = newAccessToken
@@ -106,7 +100,7 @@ fun MainContent(
     }
 
     fun startTokenRefreshLoop() {
-        logger.log("refreshaccess token loop started")
+        logger.log("RefreshAccessToken loop started")
         CoroutineScope(Dispatchers.IO).launch {
             while (true) {
                 delay(refreshInterval)
@@ -119,12 +113,12 @@ fun MainContent(
         CoroutineScope(Dispatchers.IO).launch {
             val credentials = spotifyApi.exchange(receivedCode)
             if (credentials != null) {
-                logger.log("credentials success!")
+                logger.log("host credentials success!")
                 token = credentials.accessToken
                 startTokenRefreshLoop()
                 sessionId = generateSessionId()
             } else {
-                logger.log("credentials null!")
+                logger.log("host credentials null!")
             }
         }
     }
@@ -150,7 +144,6 @@ fun MainContent(
             onClick = {
                 activity?.let {
                     spotifyAuth.requestAccessToken(it) { receivedCode ->
-                        logger.log("code recibido: $receivedCode")
                         setCredentialsForHost(receivedCode)
                     }
                 } ?: logger.logError("No se pudo obtener la Activity")
@@ -173,9 +166,7 @@ fun MainContent(
                 val link =
                     "https://shufflerionauth.onrender.com?guestEmail=$guestEmail&sessionId=$sessionId"
                 clipboardManager.copyToClipboard(link, logger)
-                logger.log("click share link $guestEmail with $sessionId")
                 isWebSocketActive = true
-
             },
             enabled = canShareLink
         ) {
@@ -196,7 +187,6 @@ fun MainContent(
     LaunchedEffect(token) {
         if (token.isNotEmpty()) {
             val id = try {
-                // Ejecutamos la llamada dentro de una coroutine
                 spotifyApi.getDeviceId()
             } catch (e: Exception) {
                 logger.logError("Error al obtener el deviceId: ${e.message}")

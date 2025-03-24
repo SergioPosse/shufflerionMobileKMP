@@ -39,7 +39,6 @@ class SpotifyAuthAndroid : Service(), SpotifyAuth {
         wakeLock.acquire()
         logger.log("SpotifyAuthAndroid - Servicio creado")
         startForeground(1, createNotification("Starting..."))
-//        instance = this
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -50,10 +49,7 @@ class SpotifyAuthAndroid : Service(), SpotifyAuth {
     }
 
     fun registerActivity(activity: Activity) {
-
             this@SpotifyAuthAndroid.activityRef = WeakReference(activity)
-            logger.log("Activity registrada: $activity")
-
     }
 
     override fun requestAccessToken(activity: Activity, onTokenReceived: (String) -> Unit) {
@@ -89,15 +85,12 @@ class SpotifyAuthAndroid : Service(), SpotifyAuth {
             if (requestCode == this@SpotifyAuthAndroid.requestCode) {
                 val intent = data as? Intent
                 if (intent == null) {
-                    logger.log("Data no es un Intent válido")
                     return
                 }
                 logger.log("data: $data")
                 val response = AuthorizationClient.getResponse(resultCode, intent)
-                logger.log("response auth client: $response")
                 when (response.type) {
                     AuthorizationResponse.Type.CODE -> {
-                        logger.log("CODE recibido: ${response.code}")
                         onTokenReceived?.invoke(response.code)
                     }
 
@@ -118,11 +111,8 @@ class SpotifyAuthAndroid : Service(), SpotifyAuth {
 
 
     fun requestAuthIntent(callback: (Intent?) -> Unit) {
-            logger.log("-----------------------------requestAuthIntent---------------------------------------------")
-
             val activity = activityRef?.get()
             if (activity != null) {
-                logger.logError("si hay activity")
                 val authBuilder = AuthorizationRequest.Builder(
                     clientId,
                     AuthorizationResponse.Type.CODE,
@@ -152,8 +142,6 @@ class SpotifyAuthAndroid : Service(), SpotifyAuth {
 
     fun registerLauncher(launcher: ActivityResultLauncher<Intent>) {
         serviceScope.launch {
-
-            logger.log("intento register launcher")
             this@SpotifyAuthAndroid.launcher = launcher
             logger.log("Launcher configurado")
         }
@@ -178,10 +166,9 @@ class SpotifyAuthAndroid : Service(), SpotifyAuth {
 
     override fun onDestroy() {
         super.onDestroy()
-//        instance = null
-//        wakeLock.release()
+        wakeLock.release()
         serviceScope.cancel()
-//        activityRef?.clear()
+        activityRef?.clear()
         logger.log("SpotifyAuthAndroid - Servicio destruido")
     }
 

@@ -3,7 +3,6 @@ package com.example.shufflerionmultiplatform
 import android.app.*
 import android.content.Context
 import android.content.Intent
-import android.os.Binder
 import android.os.IBinder
 import android.os.PowerManager
 import com.spotify.android.appremote.api.ConnectionParams
@@ -13,7 +12,6 @@ import com.spotify.protocol.types.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 
 class SpotifyAppRemoteAndroid: Service(), SpotifyAppRemoteInterface {
 
@@ -27,12 +25,6 @@ class SpotifyAppRemoteAndroid: Service(), SpotifyAppRemoteInterface {
 
     companion object {
         const val NOTIFICATION_ID = 1
-
-//        private var instance: SpotifyAppRemoteAndroid? = null
-//
-//        fun getInstance(): SpotifyAppRemoteAndroid? {
-//            return instance
-//        }
     }
 
     override fun onCreate() {
@@ -40,13 +32,11 @@ class SpotifyAppRemoteAndroid: Service(), SpotifyAppRemoteInterface {
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "SpotifyService::WakeLock")
         wakeLock.acquire()
-        logger.log("SpotifyAppRemoteAndroid - Servicio creado")
         startForeground(NOTIFICATION_ID, createNotification("Starting..."))
 //        instance = this
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        logger.log("SpotifyAppRemote Service en ejecución")
         val contentText = "SpotifyAppRemote Service is running"
         startForeground(NOTIFICATION_ID, createNotification(contentText))
         return START_STICKY
@@ -70,7 +60,6 @@ class SpotifyAppRemoteAndroid: Service(), SpotifyAppRemoteInterface {
                     onError(throwable)
                 }
             })
-
     }
 
     override fun disconnect() {
@@ -107,7 +96,6 @@ class SpotifyAppRemoteAndroid: Service(), SpotifyAppRemoteInterface {
 
     override fun onDestroy() {
         super.onDestroy()
-//        instance = null
         serviceScope.cancel()
     }
 

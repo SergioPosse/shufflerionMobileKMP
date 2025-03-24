@@ -1,7 +1,6 @@
 package com.example.shufflerionmultiplatform.android
 
 import android.annotation.SuppressLint
-import android.app.LauncherActivity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -21,7 +20,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import android.provider.Settings
 
 
 class MainActivity : ComponentActivity() {
@@ -41,20 +39,16 @@ class MainActivity : ComponentActivity() {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
-//        NewRelic.withApplicationToken("AA47eb0821059576bbdbaf433a087389974bce058d-NRMA")
-//            .withLogLevel(AgentLog.AUDIT)
-//            .start(this.application)
-//        NewRelic.enableFeature(FeatureFlag.LogReporting)
-//        NewRelic.enableFeature(FeatureFlag.BackgroundReporting)
+        NewRelic.withApplicationToken("AA47eb0821059576bbdbaf433a087389974bce058d-NRMA")
+            .withLogLevel(AgentLog.AUDIT)
+            .start(this.application)
+        NewRelic.enableFeature(FeatureFlag.LogReporting)
+        NewRelic.enableFeature(FeatureFlag.BackgroundReporting)
 
         super.onCreate(savedInstanceState)
-//        checkBatteryOptimization()
-
         spotifyAuthLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                ServiceDependencies.logger.log("launcher Resultado recibido: resultCode = ${result.resultCode}")
                 if (result.resultCode == RESULT_OK) {
-                    ServiceDependencies.logger.log("launcher result_OK")
                     spotifyAuthService?.handleActivityResult(
                         spotifyAuthService!!.requestCode,
                         result.resultCode,
@@ -78,19 +72,16 @@ class MainActivity : ComponentActivity() {
                 json(Json { ignoreUnknownKeys = true })
             }
         }
-
-        ServiceDependencies.logger = DebugLogger()
+//        ServiceDependencies.logger = DebugLogger()
+        ServiceDependencies.logger = AndroidLogger()
         ServiceDependencies.spotifyApi = SpotifyApi(httpClient, ServiceDependencies.logger)
     }
 
     private fun initializeServiceConnections() {
-        // Conectar y manejar SpotifyAppRemoteService
         spotifyAppRemoteConnection = object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
                 val binder = service as? LocalBinderAndroid<*>
                 spotifyAppRemoteService = binder?.getService() as? SpotifyAppRemoteInterface
-                ServiceDependencies.logger.log("SpotifyAppRemoteAndroid conectado")
-
                 if (spotifyAppRemoteService != null) {
                     runOnUiThread { initializeUI() }
                     ServiceDependencies.logger.log("spotifyAppRemoteService está listo para usarse")
@@ -105,20 +96,14 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Iniciar y conectar los servicios
         spotifyAppRemoteIntent = Intent(this, SpotifyAppRemoteAndroid::class.java)
         startService(spotifyAppRemoteIntent)
         bindService(spotifyAppRemoteIntent, spotifyAppRemoteConnection, Context.BIND_AUTO_CREATE)
 
-        // Conectar playerServiceConnection
         playerServiceConnection = object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-                ServiceDependencies.logger.log("onservice connected")
-
                 val binder = service as? LocalBinderAndroid<*>
                 playerService = binder?.getService() as? PlayerServiceAndroid
-                ServiceDependencies.logger.log("playerService conectado")
-
                 if (playerService != null) {
                     runOnUiThread { initializeUI() }
                     ServiceDependencies.logger.log("playerService está listo para usarse")
@@ -133,24 +118,20 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Conectar el servicio Player
         playerIntent = Intent(this, PlayerServiceAndroid::class.java)
         startService(playerIntent)
         bindService(playerIntent, playerServiceConnection, Context.BIND_AUTO_CREATE)
 
-        // Conectar spotifyAuthConnection
         spotifyAuthConnection = object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
                 val binder = service as? LocalBinderAndroid<*>
                 spotifyAuthService = binder?.getService() as? SpotifyAuthAndroid
 
                 if (spotifyAuthService != null) {
-                    ServiceDependencies.logger.log("before init ui authService")
                     runOnUiThread {
                         initializeUI()
                     }
 
-                    // Llamar al servicio para obtener el loginIntent
                     spotifyAuthService?.requestAuthIntent { loginIntent ->
                         if (loginIntent != null) {
                             startActivity(loginIntent)
@@ -159,7 +140,6 @@ class MainActivity : ComponentActivity() {
                             } else {
                                 ServiceDependencies.logger.log("no hay launcher en activity")
                             }
-                            ServiceDependencies.logger.log("after startActivity with login intent")
                         } else {
                             ServiceDependencies.logger.logError("Error: loginIntent es null")
                         }
@@ -170,7 +150,6 @@ class MainActivity : ComponentActivity() {
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
-                // Aquí puedes manejar la desconexión del servicio, por ejemplo, limpiando o liberando recursos.
                 spotifyAuthService = null
                 ServiceDependencies.logger.log("El servicio SpotifyAuthAndroid se ha desconectado")
             }

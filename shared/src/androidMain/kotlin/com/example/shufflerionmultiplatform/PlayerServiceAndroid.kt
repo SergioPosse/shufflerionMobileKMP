@@ -27,22 +27,18 @@ class PlayerServiceAndroid : Service(), PlayerService {
         wakeLock.acquire()
         logger.log("playerservice - Servicio creado")
         startForeground(NOTIFICATION_ID, createNotification("Starting..."))
-//        instance = this
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        logger.log("player service Service en ejecución")
         val contentText = "Player Service is running"
         startForeground(NOTIFICATION_ID, createNotification(contentText))
         return START_STICKY
     }
 
     override fun test() {
-
             val handler = Handler(Looper.getMainLooper())
             val runnable = object : Runnable {
                 override fun run() {
-                    println("Service foreground...")
                     handler.postDelayed(this, 3000)
                 }
             }
@@ -57,53 +53,34 @@ class PlayerServiceAndroid : Service(), PlayerService {
                 startForeground(NOTIFICATION_ID, createNotification("Failed to play song"))
             }
              return response
-
-
     }
 
         override suspend fun getDeviceIdService(): String? {
-
                 val response = spotifyApi.getDeviceId()
                 if (response == null) {
                     logger.log("Failed to get random songs")
                     return null
                 }
                 return response
-
     }
 
-
     override suspend fun getRandomSongs(): List<Song>? {
-
             val response = spotifyApi.getRandomSongs()
             if (response == null) {
                 logger.log("Failed to get random songs")
                 return null
             }
             return response
-
     }
 
     override suspend fun getPlayerState(): String? {
-
             val response = spotifyApi.getPlayerState()
             if (response == null) {
                 logger.log("Failed to get random songs")
                 return null
             }
            return response
-
     }
-
-//    override suspend fun refreshAccessToken(): String? {
-//            val response = spotifyApi.refreshAccessToken()
-//            if (response == null) {
-//                logger.log("Failed to get random songs")
-//                return null
-//            }
-//            return response
-//
-//    }
 
     private fun createNotification(contentText: String): Notification {
         val channelId = "PlaybackServiceChannel"

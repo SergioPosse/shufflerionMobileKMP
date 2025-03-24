@@ -38,14 +38,11 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
     val listState = rememberLazyListState()
     var isFetchingSongs by remember { mutableStateOf(false) }
 
-
     LaunchedEffect(currentSongIndex) {
         listState.animateScrollToItem(currentSongIndex)
         logger.log("main: $currentSongIndex - ${songs.size}")
 
     }
-
-
 
     LaunchedEffect(Unit) {
         deviceId = playerService.getDeviceIdService()
@@ -67,16 +64,12 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
     }
 
     suspend fun fetchMoreSongs() {
-        logger.log("index before fetchMoreSongs: $currentSongIndex - ${songs.size}")
-
         if (isFetchingSongs) return
         isFetchingSongs = true
         isLoading = true
         val newSongs = playerService.getRandomSongs()
         if (newSongs != null) {
             logger.log("nuevas canciones recibidas: $newSongs")
-            logger.log("nuevas canciones recibidas index: $currentSongIndex - ${songs.size}")
-
                     songs = songs + newSongs
         } else {
             delay(2000)
@@ -86,9 +79,7 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
     }
 
     fun markAsFailAndContinue(index: Int, direction: String?): Int {
-        logger.log("cancion fallida: ${songs[index].title}")
         logger.log("cancion fallida index: $currentSongIndex - ${songs.size}")
-
         songs[index].disabled = true
         if (currentSongIndex > 0) {
             if (direction == "PREV") {
@@ -98,8 +89,6 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
             }
         }
         songs[currentSongIndex].visible = true
-        logger.log("cancion fallida end: $currentSongIndex - ${songs.size}")
-
         return currentSongIndex
     }
 
@@ -123,21 +112,14 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
         songs[currentSongIndex].visible = true
         isPlaying = true
 
-        logger.log("before playSong index: $currentSongIndex - ${songs.size}")
-
         val response = deviceId?.let {
             isLoading = true
             playerService.playSong(it, songs[currentSongIndex].url, songs[currentSongIndex].title)
         }
-        logger.log("current song index after play: $currentSongIndex")
         logger.log("response playsong: $response")
         isLoading = false
         if (response == false) {
-            logger.log("before mark as fail  index: $currentSongIndex - ${songs.size}")
-
             markAsFailAndContinue(currentSongIndex, direction)
-            logger.log("after mark as fail ad before play RECURSIVE  index: $currentSongIndex - ${songs.size}")
-
             playOnlyOneSong(null, currentSongIndex)
         } else {
             delay(5000)
@@ -166,8 +148,6 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
 
     LaunchedEffect(Unit) {
         latestSpotifyRemote.value.subscribeToPlayerState { playerState ->
-            logger.log("subs player  index: $currentSongIndex - ${songs.size}")
-
             val paused = playerState.isPaused
             val playbackPosition = playerState.playbackPosition
             val track = playerState.track.name
@@ -179,21 +159,14 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
                 !isPausedByUser
             ) {
                 logger.log("Finalizado! ${songs[currentSongIndex].title}")
-                logger.log("after finalizado  index: $currentSongIndex - ${songs.size}")
-
                 coroutineScope.launch {
                     if (currentSongIndex < songs.size - 1) {
-                        logger.log("Reproduciendo siguiente...")
-                        logger.log("before repro siguiente after finalizado index: $currentSongIndex - ${songs.size}")
-
+                        logger.log("Finalizado, reproduciendo siguiente...")
                         playOnlyOneSong("NEXT", null)
                     } else {
                         logger.log("Fetching nuevas canciones...")
-                        logger.log("before fetchin nuevas canciones in sub: $currentSongIndex - ${songs.size}")
                         fetchMoreSongs()
                         delay(2000)
-                        logger.log("after fetch nuevas canciones in sub: $currentSongIndex - ${songs.size}")
-
                         playOnlyOneSong("NEXT", null)
                     }
                 }
@@ -290,17 +263,11 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
                 }) { Text("Play") }
 
                 Button(onClick = {
-                    logger.log("click next  index: $currentSongIndex - ${songs.size}")
-
                     coroutineScope.launch {
                         if (currentSongIndex < songs.size - 1) {
-                            logger.log("before next button simple < songs.size-1: $currentSongIndex - ${songs.size}")
-
                             playOnlyOneSong("NEXT", null)
                         } else {
                             logger.log("Fetching nuevas canciones...")
-                            logger.log("before next button fetch nuevas canciones: $currentSongIndex - ${songs.size}")
-
                             fetchMoreSongs()
                             delay(500)
                             playOnlyOneSong("NEXT", null)

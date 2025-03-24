@@ -36,26 +36,21 @@ class SpotifyApi(private val httpClient: HttpClient, loggerParam: Logger) {
     private var logger: Logger = loggerParam
 
 
-    fun setAccessToken(token: String) {
-        logger.log("set access token: $token")
+    private fun setAccessToken(token: String) {
         accessToken = token
     }
 
-    fun setRefreshToken(receivedRefreshToken: String) {
-        logger.log("set refreshtoken: $receivedRefreshToken")
+    private fun setRefreshToken(receivedRefreshToken: String) {
         refreshToken = receivedRefreshToken
     }
 
     fun setAccessToken2(token: String) {
-        logger.log("set access token2: $token")
         accessToken2 = token
     }
 
     fun setRefreshToken2(refreshToken: String) {
-        logger.log("set refreshtoken2: $refreshToken")
         refreshToken2 = refreshToken
     }
-
 
     suspend fun saveSession(
         sessionId: String,
@@ -98,10 +93,7 @@ class SpotifyApi(private val httpClient: HttpClient, loggerParam: Logger) {
     }
 
     suspend fun getDeviceId(): String? {
-        logger.log("device accessToken: $accessToken")
-
         if (accessToken == null) return null
-
         val response: HttpResponse =
             httpClient.get("https://api.spotify.com/v1/me/player/devices") {
                 header("Authorization", "Bearer $accessToken")
@@ -109,8 +101,6 @@ class SpotifyApi(private val httpClient: HttpClient, loggerParam: Logger) {
 
         return if (response.status == HttpStatusCode.OK) {
             val jsonResponse = Json.parseToJsonElement(response.bodyAsText())
-            logger.log("device jsonresponse: $jsonResponse")
-
             val devices = jsonResponse.jsonObject["devices"]?.jsonArray
             logger.log("device devices: $devices")
 
@@ -134,7 +124,6 @@ class SpotifyApi(private val httpClient: HttpClient, loggerParam: Logger) {
                 logger.log("Intento $attempts para $trackName - Response Status: ${response.status}")
 
                 if (response.status !== HttpStatusCode.NotFound && (response.status == HttpStatusCode.NoContent || response.status == HttpStatusCode.OK)) {
-                    logger.log("play spotifyApi ok: $trackUri - $trackName")
                     return@withContext true
                 } else {
                     logger.log("play spotifyApi fail: $trackUri - $trackName")
@@ -154,8 +143,6 @@ class SpotifyApi(private val httpClient: HttpClient, loggerParam: Logger) {
                 val domain = "https://shufflerionserver.onrender.com"
                 val createSessionUrl = "/songs/random"
                 logger.log("URL: $domain$createSessionUrl")
-                logger.log("token1 before request: $accessToken")
-                logger.log("token2 before request: $accessToken2")
                 val responseText = httpClient.post("$domain$createSessionUrl") {
                     contentType(ContentType.Application.Json)
                     setBody(
@@ -192,7 +179,6 @@ class SpotifyApi(private val httpClient: HttpClient, loggerParam: Logger) {
                 } else {
                     songs.add(dummySong)
                 }
-
                 logger.log("Canciones recibidas: $songs")
                 songs
             } catch (e: Exception) {
@@ -222,7 +208,6 @@ class SpotifyApi(private val httpClient: HttpClient, loggerParam: Logger) {
 
     suspend fun exchange(code: String): TokenResponse? {
         logger.log("Exchanging code for tokens...")
-
         return try {
             val clientId = "335ea7b32dd24009bd0529ba85f0f8cc"
             val clientSecret = "b482ee9f0aa4408da21b224d59c2d445"
@@ -261,7 +246,6 @@ class SpotifyApi(private val httpClient: HttpClient, loggerParam: Logger) {
 
     suspend fun refreshAccessToken(): String? {
         return withContext(Dispatchers.IO) {
-
             logger.log("Lanzando API para refrescar tokens...")
             var newAccessToken: String?
             var newAccessToken2: String?
@@ -282,8 +266,6 @@ class SpotifyApi(private val httpClient: HttpClient, loggerParam: Logger) {
                 }
 
                 if (response2.status == HttpStatusCode.OK) {
-                    logger.log("entro OK response2")
-
                     val jsonResponse2 = Json.parseToJsonElement(response2.bodyAsText()).jsonObject
                     newAccessToken2 = jsonResponse2["access_token"]?.jsonPrimitive?.content
 
@@ -302,11 +284,7 @@ class SpotifyApi(private val httpClient: HttpClient, loggerParam: Logger) {
                         append("refresh_token", refreshToken ?: "")
                     }))
                 }
-                logger.log("API para refrescar tokens...resp1 $response1")
-
                 if (response1.status == HttpStatusCode.OK) {
-                    logger.log("entro OK response1")
-
                     val jsonResponse1 = Json.parseToJsonElement(response1.bodyAsText()).jsonObject
                     newAccessToken = jsonResponse1["access_token"]?.jsonPrimitive?.content
 
