@@ -30,18 +30,21 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
     var deviceId by remember { mutableStateOf<String?>(null) }
     var songs by remember { mutableStateOf<List<Song>>(emptyList()) }
     var currentSongIndex by rememberSaveable { mutableIntStateOf(0) }
+    var currentSongIndexPlayed by rememberSaveable { mutableIntStateOf(0) }
+
     val coroutineScope = rememberCoroutineScope()
     val latestSpotifyRemote = rememberUpdatedState(spotifyAppRemote)
-    var isPlaying by remember { mutableStateOf<Boolean>(false) }
     var isLoading by remember { mutableStateOf(true) }
     var isPausedByUser by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     var isFetchingSongs by remember { mutableStateOf(false) }
+    var playbackPosition by remember { mutableStateOf(0L) }
+    var playbackStartTime by remember { mutableStateOf(0L) }
+    var isPlaying by remember { mutableStateOf(false) }
 
     LaunchedEffect(currentSongIndex) {
         listState.animateScrollToItem(currentSongIndex)
         logger.log("main: $currentSongIndex - ${songs.size}")
-
     }
 
     LaunchedEffect(Unit) {
@@ -70,7 +73,7 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
         val newSongs = playerService.getRandomSongs()
         if (newSongs != null) {
             logger.log("nuevas canciones recibidas: $newSongs")
-                    songs = songs + newSongs
+            songs = songs + newSongs
         } else {
             delay(2000)
         }
@@ -92,7 +95,6 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
         return currentSongIndex
     }
 
-
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun playOnlyOneSong(direction: String?, index: Int?, attempts: Int = 0) {
         if (direction == "PREV") {
@@ -106,10 +108,12 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
         if (index !== null) {
             currentSongIndex = index
         }
-        if (currentSongIndex >= songs.size * 0.4 && !isFetchingSongs) {
+        if (currentSongIndex >= songs.size * 0.5 && !isFetchingSongs) {
             fetchMoreSongs()
         }
         songs[currentSongIndex].visible = true
+        playbackStartTime = System.currentTimeMillis() // Guardamos el tiempo en que empezó
+        playbackPosition = 0L
         isPlaying = true
 
         val response = deviceId?.let {
@@ -117,6 +121,7 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
             playerService.playSong(it, songs[currentSongIndex].url, songs[currentSongIndex].title)
         }
         logger.log("response playsong: $response")
+        currentSongIndexPlayed = currentSongIndex
         isLoading = false
         if (response == false) {
             markAsFailAndContinue(currentSongIndex, direction)
@@ -145,18 +150,18 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
         }
     }
 
-
     LaunchedEffect(Unit) {
         latestSpotifyRemote.value.subscribeToPlayerState { playerState ->
             val paused = playerState.isPaused
-            val playbackPosition = playerState.playbackPosition
+            val playbackPositionS = playerState.playbackPosition
             val track = playerState.track.name
             if (
-                playbackPosition <= 0 &&
+                playbackPositionS <= 0 &&
                 isPlaying &&
                 paused &&
                 track != null &&
-                !isPausedByUser
+                !isPausedByUser &&
+                currentSongIndex == currentSongIndexPlayed
             ) {
                 logger.log("Finalizado! ${songs[currentSongIndex].title}")
                 coroutineScope.launch {
@@ -173,6 +178,7 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
             }
         }
     }
+
     if (isLoading) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -203,6 +209,58 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
+            @Composable
+            fun SongItem(
+                song: Song,
+                isCurrentSong: Boolean,
+                isPlaying: Boolean,
+                initialPlaybackPosition: Long = if (isCurrentSong) playbackPosition else 0L,
+                modifier: Modifier = Modifier,
+                onClick: () -> Unit
+            ) {
+                var progress by remember { mutableFloatStateOf(0f) }
+                var localPlaybackPosition by remember { mutableLongStateOf(initialPlaybackPosition) }
+                progress = if (isCurrentSong) {
+                    localPlaybackPosition.toFloat() / song.duration.toFloat()
+                } else 0f
+
+                LaunchedEffect(isPlaying, playbackStartTime) {
+                    while (isPlaying) {
+                        localPlaybackPosition = System.currentTimeMillis() - playbackStartTime
+                        delay(500)
+                    }
+                }
+
+                val backgroundGradient = Brush.horizontalGradient(
+                    colors = when {
+                        song.disabled -> listOf(Color(0xFFFF0000), Color(0xFFF43646))
+                        isCurrentSong -> listOf(Color(0xFFAF8E4C), Color(0xFFF46236))
+                        else -> listOf(Color(0x4D8000FF), Color(0x5C9C27B0))
+                    }
+                )
+
+                Box(
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .clip(MaterialTheme.shapes.medium)
+                        .background(backgroundGradient)
+                        .clickable { onClick() }
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(progress)
+                            .height(48.dp)
+                            .background(Color(0xAAFFD700))
+                    )
+                    Text(
+                        text = "${song.artist} - ${song.title}",
+                        fontSize = 18.sp,
+                        color = Color.White,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            }
+
             LazyColumn(
                 state = listState,
                 modifier = Modifier
@@ -213,34 +271,19 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
             ) {
                 items(songs.filter { it.visible }) { song ->
                     val isCurrentSong = songs.indexOf(song) == currentSongIndex
-                    val backgroundGradient = Brush.horizontalGradient(
-                        colors = if (song.disabled) {
-                            listOf(Color(0xFFFF0000), Color(0xFFF43646))
-                        } else if (isCurrentSong) {
-                            listOf(Color(0xFFAF8E4C), Color(0xFFF46236))
-                        } else {
-                            listOf(Color(0x4D8000FF), Color(0x5C9C27B0)) // Normal
+
+                    SongItem(
+                        song = song,
+                        isCurrentSong = isCurrentSong,
+                        isPlaying = isPlaying,
+                        initialPlaybackPosition = if (isCurrentSong) playbackPosition else 0L,
+                        onClick = {
+                            coroutineScope.launch {
+                                playbackStartTime = System.currentTimeMillis()
+                                playOnlyOneSong(null, songs.indexOf(song))
+                            }
                         }
                     )
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(MaterialTheme.shapes.medium)
-                            .background(backgroundGradient)
-                            .clickable {
-                                coroutineScope.launch {
-                                    playOnlyOneSong(null, songs.indexOf(song))
-                                }
-                            }
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            "${song.artist} - ${song.title}",
-                            fontSize = 18.sp,
-                            color = Color.White
-                        )
-                    }
                 }
             }
 
@@ -269,13 +312,13 @@ fun PlayerScreen(playerService: PlayerService, spotifyAppRemote: SpotifyAppRemot
                         } else {
                             logger.log("Fetching nuevas canciones...")
                             fetchMoreSongs()
-                            delay(500)
+                            delay(2000)
                             playOnlyOneSong("NEXT", null)
                         }
                     }
-
                 }) { Text("Next") }
             }
         }
     }
 }
+

@@ -21,7 +21,8 @@ data class Song(
     val url: String,
     val image: String,
     var visible: Boolean,
-    var disabled: Boolean
+    var disabled: Boolean,
+    var duration: Int
 )
 
 data class TokenResponse(val accessToken: String, val refreshToken: String)
@@ -162,8 +163,12 @@ class SpotifyApi(private val httpClient: HttpClient, loggerParam: Logger) {
                     val artist = songJson.getString("Artist")
                     val url = songJson.getString("Url")
                     val image = songJson.getString("Image")
+                    val duration = songJson.getString("Duration")
 
-                    songs.add(Song(title, artist, url, image, disabled = false, visible = false))
+                    songs.add(Song(
+                        title, artist, url, image, disabled = false, visible = false,
+                        duration = duration.toIntOrNull() ?: 0
+                    ))
                 }
 
                 val dummySong = Song(
@@ -172,7 +177,8 @@ class SpotifyApi(private val httpClient: HttpClient, loggerParam: Logger) {
                     "spotify:track:243CX6U8LofX7SJbBewWRN",
                     "dummy_image_url",
                     disabled = false,
-                    visible = false
+                    visible = false,
+                    duration = 3000,
                 )
                 if (songs.size >= 3) {
                     songs.add(3, dummySong)

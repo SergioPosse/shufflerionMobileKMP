@@ -82,7 +82,7 @@ fun MainContent(
     var isWebSocketActive by remember {
         mutableStateOf(false)
     }
-    val refreshInterval = 600000L
+    val refreshInterval = 20 * 60 * 1000L
 
     val context = LocalContext.current
     val activity = context as? Activity
